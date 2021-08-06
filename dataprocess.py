@@ -3,45 +3,27 @@
 #if error - install xlrd, pandas, openpyxl, tabulate
 
 import pandas
-import os
-from subprocess import call
 import pandas as pd
 from tabulate import tabulate
 
 #format output
-pd.options.display.float_format = '{:,.2f}'.format
-
-# define clear function for menu ops
-def clear():
-    # check and make call for specific operating system
-    _ = call('clear' if os.name =='posix' else 'cls')
+pd.options.display.float_format = '{:,.0f}'.format
 
 #open files
 df1 = pd.read_excel("gdp_usd.xls")
 df2 = pd.read_excel("gdp_growth.xls")
 
-#user input
-clear()
-print("GDP Data")
-print("#"*45)
-print("1: Nominal USD")
-print("2: Growth %")
-print("#"*45)
-userInput = input("Selection: ")
-
-while userInput != 'q':
-    if userInput == '0':
-        print("GDP Data")
-        print("#"*45)
-        print("1: Nominal USD")
-        print("2: Growth %")
-        print("#"*45)
-    elif userInput == '1':
-        print(tabulate(df1, headers='keys', tablefmt='psql'))
-    elif userInput == '2':
-        print(tabulate(df2, headers='keys', tablefmt='psql'))
-        print('')
-        print(tabulate(df2.describe(), headers='keys', tablefmt='psql'))
-        print('')     
-          
-    userInput = input("Press q to quit, 0 for menu) ")
+df1 = df1[df1["Year"] == 2020]
+df2_maths = df2.groupby('Country Name')['Percentage'].mean().to_frame().reset_index()
+df3 = df1.merge(df2_maths, how='left')
+df3 = df3.drop(columns = ['Year'])
+df3["2021 Est"] = (df3["USD"])+(df3["USD"] * (df2_maths["Percentage"]/100))
+print('')
+df3 = df3.drop(columns= ['Percentage'])
+print('4 Year GDP Average:')
+print(tabulate(df2_maths, headers='keys', tablefmt='psql'))
+print('')
+print('2020 and Estimated 2021 GDP:')
+print(tabulate(df3, headers='keys', tablefmt='psql'))
+print("")
+df3.to_html("df4.html")
